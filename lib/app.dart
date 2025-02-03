@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:task_management/ui/screens/auth/update_profile.dart';
 import 'package:task_management/ui/screens/forgot_password/email_verify.dart';
 import 'package:task_management/ui/screens/forgot_password/otp_code_verify.dart';
@@ -8,7 +9,6 @@ import 'package:task_management/ui/screens/main_bottom_nav.dart';
 import 'package:task_management/ui/screens/auth/register.dart';
 import 'package:task_management/ui/screens/splash_screen.dart';
 import 'package:task_management/ui/screens/task/add_new_task.dart';
-import 'package:task_management/ui/screens/task/update_task_status.dart';
 import 'package:task_management/ui/utils/app_colors.dart';
 
 class TaskManagerApp extends StatelessWidget {
@@ -18,7 +18,7 @@ class TaskManagerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       initialRoute: '/',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -91,10 +91,6 @@ class TaskManagerApp extends StatelessWidget {
           widget = const AddNewTaskScreen();
         } else if (settings.name == UpdateProfileScreen.routeName) {
           widget = const UpdateProfileScreen();
-        } else if (settings.name == UpdateTaskStatusScreen.routeName) {
-          widget = const UpdateTaskStatusScreen(
-            taskId: '',
-          );
         }
 
         return MaterialPageRoute(builder: (ctx) => widget);
