@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:task_management/controller_binder.dart';
 import 'package:task_management/ui/screens/auth/update_profile.dart';
 import 'package:task_management/ui/screens/forgot_password/email_verify.dart';
 import 'package:task_management/ui/screens/forgot_password/otp_code_verify.dart';
@@ -20,6 +21,8 @@ class TaskManagerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       initialRoute: '/',
+      navigatorKey: navigatorKey,
+      initialBinding: ControllerBinder(),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorSchemeSeed: AppColors.themeColor,

@@ -1,12 +1,11 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:task_management/data/services/network_caller.dart';
-import 'package:task_management/data/utils/urls.dart';
+import 'package:task_management/ui/controllers/forgot_password/reset_password_controller.dart';
 import 'package:task_management/ui/screens/auth/login.dart';
 import 'package:task_management/ui/utils/app_colors.dart';
 import 'package:task_management/ui/widgets/background.dart';
-import 'package:task_management/ui/widgets/snack_bar_message.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -23,7 +22,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  bool _isLoading = false;
+  final ResetPasswordController _resetPasswordController =
+      Get.find<ResetPasswordController>();
 
   late String email;
   late String otp;
@@ -101,24 +101,27 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   },
                 ),
                 const SizedBox(height: 24),
-                Visibility(
-                  visible: _isLoading == false,
-                  replacement: const Center(child: CircularProgressIndicator()),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _resetPassword();
-                      }
-                    },
-                    child: const Text(
-                      'Confirm',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+                GetBuilder<ResetPasswordController>(builder: (controller) {
+                  return Visibility(
+                    visible: controller.isLoading == false,
+                    replacement:
+                        const Center(child: CircularProgressIndicator()),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          _resetPassword();
+                        }
+                      },
+                      child: const Text(
+                        'Confirm',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                }),
                 const SizedBox(height: 48),
                 Center(
                   child: _buildLoginSection(context),
@@ -160,41 +163,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   void _resetPassword() async {
-    setState(() {
-      _isLoading = true;
-    });
-
     final password = _passwordController.text.trim();
 
-    final NetworkResponse response = await NetworkCaller.postRequest(
-      url: Urls.resetPassword,
-      body: {
-        'email': email,
-        'OTP': otp,
-        'password': password,
-      },
-    );
-    if (response.isSuccess) {
-      final responseData = response.responseData!;
+    final isSuccess = await _resetPasswordController.resetPassword(password);
 
-      if (responseData['status'] == 'success') {
-        showSnackBarMessage(context, 'Password Reset Successfully');
-
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          LoginScreen.routeName,
-          (value) => false,
-        );
-      } else {
-        showSnackBarMessage(context, responseData['status']);
-      }
+    if (isSuccess) {
+      Get.offAllNamed(LoginScreen.routeName);
+      Get.snackbar('Success', 'Password reset successfully');
     } else {
-      showSnackBarMessage(context, response.errorMessage);
+      Get.snackbar('Error', _resetPasswordController.errorMessage!);
     }
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   @override

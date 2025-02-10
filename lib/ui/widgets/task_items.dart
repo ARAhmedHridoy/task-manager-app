@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:task_management/data/models/task_model.dart';
+import 'package:task_management/ui/controllers/task/task_items_controller.dart';
 
 class TaskItems extends StatelessWidget {
   const TaskItems({
@@ -101,13 +103,13 @@ class TaskItems extends StatelessWidget {
                             actions: [
                               TextButton(
                                 onPressed: () {
-                                  Navigator.pop(context, false);
+                                  Get.back(result: false);
                                 },
                                 child: const Text('No'),
                               ),
                               TextButton(
                                 onPressed: () {
-                                  Navigator.pop(context, true);
+                                  Get.back(result: true);
                                 },
                                 child: const Text('Yes'),
                               ),
@@ -136,124 +138,66 @@ class TaskItems extends StatelessWidget {
 
   Future<String?> _showEditStatusDialog(
       BuildContext context, String currentStatus) async {
-    return showDialog(
+    final TaskItemsController taskItemsController =
+        Get.put(TaskItemsController());
+    taskItemsController.selectedStatus.value = currentStatus;
+
+    return showDialog<String>(
       context: context,
       builder: (BuildContext context) {
-        String? selectedStatus = currentStatus;
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return AlertDialog(
-              title: const Text('Update Task Status'),
-              content: DropdownButton<String>(
-                value: selectedStatus,
-                isExpanded: true,
-                items: const [
-                  DropdownMenuItem(
-                    value: 'New',
-                    child: Text('New'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Progress',
-                    child: Text('Progress'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Completed',
-                    child: Text('Completed'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Canceled',
-                    child: Text('Canceled'),
-                  ),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    selectedStatus = value;
-                  });
-                },
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context, null);
-                  },
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(color: Colors.red),
-                  ),
+        return AlertDialog(
+          title: const Text('Update Task Status'),
+          content: Obx(
+            () => DropdownButton<String>(
+              value: taskItemsController.selectedStatus.value,
+              isExpanded: true,
+              items: const [
+                DropdownMenuItem(
+                  value: 'New',
+                  child: Text('New'),
                 ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context, selectedStatus);
-                  },
-                  child: const Text(
-                    'Update',
-                    style: TextStyle(color: Colors.blue),
-                  ),
+                DropdownMenuItem(
+                  value: 'Progress',
+                  child: Text('Progress'),
+                ),
+                DropdownMenuItem(
+                  value: 'Completed',
+                  child: Text('Completed'),
+                ),
+                DropdownMenuItem(
+                  value: 'Canceled',
+                  child: Text('Canceled'),
                 ),
               ],
-            );
-          },
+              onChanged: (value) {
+                if (value != null) {
+                  taskItemsController.selectedStatus.value = value;
+                }
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Get.back(result: null);
+              },
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Get.back(result: taskItemsController.selectedStatus.value);
+              },
+              child: const Text(
+                'Update',
+                style: TextStyle(color: Colors.blue),
+              ),
+            ),
+          ],
         );
       },
     );
   }
-
-  // Future<String?> _showEditStatusDialog(
-  //     BuildContext context, String currentStatus) async {
-  //   String? selectedStatus = currentStatus;
-
-  //   return showDialog<String>(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: const Text('Update Task Status'),
-  //         content: DropdownButton<String>(
-  //           value: selectedStatus,
-  //           isExpanded: true,
-  //           items: const [
-  //             DropdownMenuItem(
-  //               value: 'New',
-  //               child: Text('New'),
-  //             ),
-  //             DropdownMenuItem(
-  //               value: 'Progress',
-  //               child: Text('Progress'),
-  //             ),
-  //             DropdownMenuItem(
-  //               value: 'Completed',
-  //               child: Text('Completed'),
-  //             ),
-  //             DropdownMenuItem(
-  //               value: 'Canceled',
-  //               child: Text('Canceled'),
-  //             ),
-  //           ],
-  //           onChanged: (value) {
-  //             selectedStatus = value;
-  //           },
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.pop(context, null);
-  //             },
-  //             child: const Text(
-  //               'Cancel',
-  //               style: TextStyle(color: Colors.red),
-  //             ),
-  //           ),
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.pop(context, selectedStatus);
-  //             },
-  //             child: const Text(
-  //               'Update',
-  //               style: TextStyle(color: Colors.blue),
-  //             ),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 }

@@ -1,9 +1,12 @@
 import 'dart:convert';
 
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:task_management/data/models/user_model.dart';
 
-class AuthController {
+class AuthController extends GetxController {
+  static AuthController get to => Get.find();
+
   static String? authToken;
   static UserModel? userModel;
 
@@ -36,16 +39,6 @@ class AuthController {
       return true;
     }
     return false;
-  }
-
-  Future<void> WriteEmailVerification(Email) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('EmailVerification', Email);
-  }
-
-  Future<void> WriteOTPVerification(OTP) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('OTPVerification', OTP);
   }
 
   static Future<void> clearUserData() async {

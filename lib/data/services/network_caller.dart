@@ -1,10 +1,7 @@
 import 'dart:convert';
-
-import 'package:flutter/material.dart';
 import 'package:http/http.dart';
-import 'package:task_management/app.dart';
-import 'package:task_management/ui/controllers/auth_controller.dart';
-import 'package:task_management/ui/screens/auth/login.dart';
+import 'package:task_management/ui/controllers/auth/auth_controller.dart';
+import 'package:task_management/ui/controllers/auth/logout_controller.dart';
 
 class NetworkResponse {
   final int statusCode;
@@ -25,13 +22,10 @@ class NetworkCaller {
       {required String url, Map<String, dynamic>? params}) async {
     try {
       Uri uri = Uri.parse(url);
-      debugPrint('URL => $url');
       Response response = await get(
         uri,
         headers: {'token': AuthController.authToken ?? ''},
       );
-      debugPrint('Response => ${response.statusCode}');
-      debugPrint('Response => ${response.body}');
       if (response.statusCode == 200) {
         final decodedResponse = jsonDecode(response.body);
         return NetworkResponse(
@@ -40,7 +34,7 @@ class NetworkCaller {
           responseData: decodedResponse,
         );
       } else if (response.statusCode == 401) {
-        await _logout();
+        await LogoutController.logout();
         return NetworkResponse(
           isSuccess: false,
           statusCode: response.statusCode,
@@ -64,8 +58,6 @@ class NetworkCaller {
       {required String url, Map<String, dynamic>? body}) async {
     try {
       Uri uri = Uri.parse(url);
-      debugPrint('URL => $url');
-      debugPrint('Body => $body');
       Response response = await post(
         uri,
         headers: {
@@ -75,8 +67,6 @@ class NetworkCaller {
         },
         body: jsonEncode(body),
       );
-      debugPrint('Response => ${response.statusCode}');
-      debugPrint('Response => ${response.body}');
       if (response.statusCode == 200) {
         final decodedResponse = jsonDecode(response.body);
         return NetworkResponse(
@@ -85,7 +75,7 @@ class NetworkCaller {
           responseData: decodedResponse,
         );
       } else if (response.statusCode == 401) {
-        await _logout();
+        await LogoutController.logout();
         return NetworkResponse(
           isSuccess: false,
           statusCode: response.statusCode,
@@ -103,14 +93,5 @@ class NetworkCaller {
         errorMessage: e.toString(),
       );
     }
-  }
-
-  static Future<void> _logout() async {
-    await AuthController.clearUserData();
-    Navigator.pushNamedAndRemoveUntil(
-      TaskManagerApp.navigatorKey.currentContext!,
-      LoginScreen.routeName,
-      (_) => false,
-    );
   }
 }

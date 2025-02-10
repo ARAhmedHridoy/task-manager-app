@@ -1,17 +1,14 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:task_management/data/models/user_model.dart';
-import 'package:task_management/data/services/network_caller.dart';
-import 'package:task_management/data/utils/urls.dart';
-import 'package:task_management/ui/controllers/auth_controller.dart';
+import 'package:get/get.dart';
+import 'package:task_management/ui/controllers/auth/login_controller.dart';
 import 'package:task_management/ui/screens/forgot_password/email_verify.dart';
 import 'package:task_management/ui/screens/main_bottom_nav.dart';
 import 'package:task_management/ui/screens/auth/register.dart';
 import 'package:task_management/ui/utils/app_colors.dart';
 import 'package:task_management/ui/widgets/background.dart';
 import 'package:task_management/ui/widgets/progress_indicator.dart';
-import 'package:task_management/ui/widgets/snack_bar_message.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,7 +23,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _loginProgress = false;
+
+  final LoginController _loginController = Get.find<LoginController>();
 
   @override
   Widget build(BuildContext context) {
@@ -83,25 +81,26 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  Visibility(
-                    visible: _loginProgress == false,
-                    replacement: const CenteredCircularProgressIndicator(),
-                    child: ElevatedButton(
-                      onPressed: _onTapLoginButton,
-                      child: const Icon(
-                        Icons.arrow_circle_right_outlined,
-                        color: Colors.white,
+                  GetBuilder<LoginController>(builder: (controller) {
+                    return Visibility(
+                      visible: controller.inProgress == false,
+                      replacement: const CenteredCircularProgressIndicator(),
+                      child: ElevatedButton(
+                        onPressed: _onTapLoginButton,
+                        child: const Icon(
+                          Icons.arrow_circle_right_outlined,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                   const SizedBox(height: 48),
                   Center(
                     child: Column(
                       children: [
                         TextButton(
                           onPressed: () {
-                            Navigator.pushNamed(
-                              context,
+                            Get.offNamed(
                               EmailVerifyScreen.routeName,
                             );
                           },
@@ -127,30 +126,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _loginToAccount() async {
-    _loginProgress = true;
-    setState(() {});
-    Map<String, dynamic> requestBody = {
-      'email': _emailController.text.trim(),
-      'password': _passwordController.text,
-    };
-    final NetworkResponse response = await NetworkCaller.postRequest(
-      url: Urls.login,
-      body: requestBody,
+    final bool isSuccess = await _loginController.loginToAccount(
+      _emailController.text.trim(),
+      _passwordController.text,
     );
-    if (response.isSuccess) {
-      String token = response.responseData!['token'];
-      UserModel userModel = UserModel.fromJson(response.responseData!['data']);
-      await AuthController.saveUserData(token, userModel);
-      Navigator.pushReplacementNamed(context, MainBottomNav.routeName);
+    if (isSuccess) {
+      Get.offAllNamed(MainBottomNav.routeName);
+      Get.snackbar('Success', 'Login Successfully');
     } else {
-      _loginProgress = false;
-      setState(() {});
-      if (response.statusCode == 401) {
-        showSnackBarMessage(
-            context, 'Invalid email or password! Please try again.');
-      } else {
-        showSnackBarMessage(context, response.errorMessage);
-      }
+      Get.snackbar('Error', _loginController.errorMessage!);
     }
   }
 
@@ -170,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
-                Navigator.pushNamed(context, RegisterScreen.routeName);
+                Get.offNamed(RegisterScreen.routeName);
               },
           ),
         ],

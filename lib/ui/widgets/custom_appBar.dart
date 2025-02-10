@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:task_management/ui/controllers/auth_controller.dart';
+import 'package:get/get.dart';
+import 'package:task_management/ui/controllers/auth/auth_controller.dart';
 import 'package:task_management/ui/screens/auth/update_profile.dart';
 import 'package:task_management/ui/screens/splash_screen.dart';
 import 'package:task_management/ui/utils/app_colors.dart';
@@ -38,7 +39,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: GestureDetector(
               onTap: () {
                 if (!formUpdateProfile) {
-                  Navigator.pushNamed(context, UpdateProfileScreen.routeName);
+                  Get.toNamed(UpdateProfileScreen.routeName);
                 }
               },
               child: Column(
@@ -63,8 +64,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           IconButton(
             onPressed: () async {
               await AuthController.clearUserData();
-              Navigator.pushNamedAndRemoveUntil(
-                context,
+              Get.offNamedUntil(
                 SplashScreen.routeName,
                 (predicate) => false,
               );

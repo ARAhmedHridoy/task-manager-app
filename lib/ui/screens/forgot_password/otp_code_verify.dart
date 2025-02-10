@@ -1,15 +1,14 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:task_management/data/services/network_caller.dart';
-import 'package:task_management/data/utils/urls.dart';
+import 'package:task_management/ui/controllers/forgot_password/otp_code_verify_controller.dart';
+import 'package:task_management/ui/screens/forgot_password/email_verify.dart';
 import 'package:task_management/ui/screens/forgot_password/reset_password.dart';
 import 'package:task_management/ui/screens/auth/login.dart';
 import 'package:task_management/ui/utils/app_colors.dart';
 import 'package:task_management/ui/widgets/background.dart';
 import 'package:task_management/ui/widgets/progress_indicator.dart';
-import 'package:task_management/ui/widgets/snack_bar_message.dart';
 
 class OTPCodeVerifyScreen extends StatefulWidget {
   const OTPCodeVerifyScreen({super.key});
@@ -23,7 +22,9 @@ class OTPCodeVerifyScreen extends StatefulWidget {
 class _OTPCodeVerifyScreenState extends State<OTPCodeVerifyScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _otpController = TextEditingController();
-  bool _isLoading = false;
+
+  final OtpCodeVerifyController _otpCodeVerifyController =
+      Get.find<OtpCodeVerifyController>();
 
   @override
   Widget build(BuildContext context) {
@@ -54,24 +55,26 @@ class _OTPCodeVerifyScreenState extends State<OTPCodeVerifyScreen> {
                 const SizedBox(height: 24),
                 _buildPinCodeTextField(context),
                 const SizedBox(height: 24),
-                Visibility(
-                  visible: _isLoading == false,
-                  replacement: const CenteredCircularProgressIndicator(),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _verifyOTP();
-                      }
-                    },
-                    child: const Text(
-                      'Verify',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+                GetBuilder<OtpCodeVerifyController>(builder: (controller) {
+                  return Visibility(
+                    visible: controller.isLoading == false,
+                    replacement: const CenteredCircularProgressIndicator(),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          _verifyOTP();
+                        }
+                      },
+                      child: const Text(
+                        'Verify',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                }),
                 const SizedBox(height: 48),
                 Center(
                   child: _buildLoginSection(context),
@@ -149,54 +152,19 @@ class _OTPCodeVerifyScreenState extends State<OTPCodeVerifyScreen> {
   Future<void> _verifyOTP() async {
     final otp = _otpController.text.trim();
 
-    setState(() {
-      _isLoading = true;
-    });
+    final bool isSuccess = await _otpCodeVerifyController.verifyOTP(otp);
 
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final email = prefs.getString('email');
-
-      if (email == null) {
-        showSnackBarMessage(context, 'Email not found');
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          LoginScreen.routeName,
-          (value) => false,
-        );
-        return;
-      }
-
-      final NetworkResponse response = await NetworkCaller.getRequest(
-        url: Urls.verifyOTP(email, otp),
-      );
-
-      if (response.isSuccess) {
-        final responseData = response.responseData!;
-
-        if (responseData['status'] == 'success') {
-          //final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('otp', otp);
-
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            ResetPasswordScreen.routeName,
-            (value) => false,
-          );
-          debugPrint('OTP => $otp');
-        } else {
-          showSnackBarMessage(context, responseData['status']);
-        }
+    if (isSuccess == false) {
+      Get.snackbar('Error', 'Email not found');
+      Get.offAllNamed(EmailVerifyScreen.routeName);
+    } else {
+      if (isSuccess) {
+        Get.offAllNamed(ResetPasswordScreen.routeName);
+        Get.snackbar('Success', 'OTP verified successfully');
       } else {
-        showSnackBarMessage(context, response.errorMessage);
+        Get.snackbar('Error', _otpCodeVerifyController.errorMessage!);
       }
-    } catch (e) {
-      showSnackBarMessage(context, e.toString());
     }
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   // @override

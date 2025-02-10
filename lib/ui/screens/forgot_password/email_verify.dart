@@ -1,13 +1,11 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:task_management/data/services/network_caller.dart';
-import 'package:task_management/data/utils/urls.dart';
+import 'package:get/get.dart';
+import 'package:task_management/ui/controllers/forgot_password/email_verify_controller.dart';
 import 'package:task_management/ui/screens/forgot_password/otp_code_verify.dart';
 import 'package:task_management/ui/utils/app_colors.dart';
 import 'package:task_management/ui/widgets/background.dart';
 import 'package:task_management/ui/widgets/progress_indicator.dart';
-import 'package:task_management/ui/widgets/snack_bar_message.dart';
 
 class EmailVerifyScreen extends StatefulWidget {
   const EmailVerifyScreen({super.key});
@@ -21,7 +19,9 @@ class EmailVerifyScreen extends StatefulWidget {
 class _EmailVerifyScreenState extends State<EmailVerifyScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
-  bool _isLoading = false;
+
+  final EmailVerifyController _emailVerifyController =
+      Get.find<EmailVerifyController>();
 
   @override
   Widget build(BuildContext context) {
@@ -64,21 +64,23 @@ class _EmailVerifyScreenState extends State<EmailVerifyScreen> {
                   },
                 ),
                 const SizedBox(height: 24),
-                Visibility(
-                  visible: _isLoading == false,
-                  replacement: const CenteredCircularProgressIndicator(),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _verifyEmail();
-                      }
-                    },
-                    child: const Icon(
-                      Icons.arrow_circle_right_outlined,
-                      color: Colors.white,
+                GetBuilder<EmailVerifyController>(builder: (controller) {
+                  return Visibility(
+                    visible: controller.isLoading == false,
+                    replacement: const CenteredCircularProgressIndicator(),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          _verifyEmail();
+                        }
+                      },
+                      child: const Icon(
+                        Icons.arrow_circle_right_outlined,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                }),
                 const SizedBox(height: 48),
                 Center(
                   child: _buildLoginSection(context),
@@ -118,37 +120,14 @@ class _EmailVerifyScreenState extends State<EmailVerifyScreen> {
 
   Future<void> _verifyEmail() async {
     final email = _emailController.text.trim();
+    final bool isSuccess = await _emailVerifyController.emailVerify(email);
 
-    if (email.isEmpty) {
-      showSnackBarMessage(context, 'Please enter email');
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    final NetworkResponse response = await NetworkCaller.getRequest(
-      url: Urls.verifyEmail(email),
-    );
-
-    if (response.isSuccess) {
-      final responseData = response.responseData!;
-
-      if (responseData['status'] == 'success') {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('email', email);
-        Navigator.pushNamed(context, OTPCodeVerifyScreen.routeName);
-      } else {
-        showSnackBarMessage(context, responseData['status']);
-      }
+    if (isSuccess) {
+      Get.offNamed(OTPCodeVerifyScreen.routeName);
+      Get.snackbar('Success', 'Email sent successfully');
     } else {
-      showSnackBarMessage(context, response.errorMessage);
+      Get.snackbar('Error', _emailVerifyController.errorMessage!);
     }
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   @override

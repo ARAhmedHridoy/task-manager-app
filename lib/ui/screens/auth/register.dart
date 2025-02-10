@@ -1,12 +1,11 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:task_management/data/services/network_caller.dart';
-import 'package:task_management/data/utils/urls.dart';
+import 'package:get/get.dart';
+import 'package:task_management/ui/controllers/auth/register_controller.dart';
 import 'package:task_management/ui/screens/auth/login.dart';
 import 'package:task_management/ui/utils/app_colors.dart';
 import 'package:task_management/ui/widgets/background.dart';
 import 'package:task_management/ui/widgets/progress_indicator.dart';
-import 'package:task_management/ui/widgets/snack_bar_message.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -24,7 +23,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _registerInProgress = false;
+
+  final RegisterController _registerController = Get.find<RegisterController>();
 
   @override
   Widget build(BuildContext context) {
@@ -119,17 +119,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  Visibility(
-                    visible: _registerInProgress == false,
-                    replacement: const CenteredCircularProgressIndicator(),
-                    child: ElevatedButton(
-                      onPressed: _onTapRegisterButton,
-                      child: const Icon(
-                        Icons.arrow_circle_right_outlined,
-                        color: Colors.white,
+                  GetBuilder<RegisterController>(builder: (controller) {
+                    return Visibility(
+                      visible: controller.registerInProgress == false,
+                      replacement: const CenteredCircularProgressIndicator(),
+                      child: ElevatedButton(
+                        onPressed: _onTapRegisterButton,
+                        child: const Icon(
+                          Icons.arrow_circle_right_outlined,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                   const SizedBox(height: 48),
                   Center(
                     child: _buildRegisterSection(context),
@@ -145,36 +147,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _onTapRegisterButton() {
     if (_formKey.currentState!.validate()) {
-      registerUser();
+      _registerUser();
     }
   }
 
-  Future<void> registerUser() async {
-    _registerInProgress = true;
-    setState(() {});
-
-    Map<String, dynamic> requestBody = {
-      "email": _emailController.text.trim(),
-      "firstName": _fastNameController.text.trim(),
-      "lastName": _lastNameController.text.trim(),
-      "mobile": _phoneController.text.trim(),
-      "password": _passwordController.text,
-      "photo": "",
-    };
-
-    final NetworkResponse response = await NetworkCaller.postRequest(
-      url: Urls.register,
-      body: requestBody,
+  Future<void> _registerUser() async {
+    final bool isSuccess = await _registerController.registerUser(
+      _emailController.text.trim(),
+      _fastNameController.text.trim(),
+      _lastNameController.text.trim(),
+      _phoneController.text.trim(),
+      _passwordController.text.trim(),
     );
 
-    _registerInProgress = false;
-    setState(() {});
-
-    if (response.isSuccess) {
+    if (isSuccess) {
       _clearTextFields();
-      showSnackBarMessage(context, 'Registration successful');
+      Get.offNamed(LoginScreen.routeName);
+      Get.snackbar('Success', 'Registration successful');
     } else {
-      showSnackBarMessage(context, response.errorMessage);
+      Get.snackbar('Error', _registerController.errorMessage!);
     }
   }
 
@@ -202,7 +193,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
-                Navigator.pop(context, LoginScreen.routeName);
+                Get.off(LoginScreen.routeName);
                 //Navigator.pushNamed(context, LoginScreen.routeName);
               },
           ),
