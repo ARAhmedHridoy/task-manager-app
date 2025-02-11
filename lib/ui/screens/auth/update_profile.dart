@@ -226,47 +226,6 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       Get.snackbar('Error', _updateProfileController.errorMessage!);
     }
   }
-  // Future<void> _updateProfile() async {
-  //   _inProgress = true;
-  //   setState(() {});
-
-  //   Map<String, dynamic> requestBody = {
-  //     "email": _emailController.text.trim(),
-  //     "firstName": _fastNameController.text.trim(),
-  //     "lastName": _lastNameController.text.trim(),
-  //     "mobile": _phoneController.text.trim(),
-  //   };
-
-  //   if (_pickedImage != null) {
-  //     List<int> imageBytes = await _pickedImage!.readAsBytes();
-  //     requestBody['photo'] = base64Encode(imageBytes);
-  //   }
-
-  //   if (_passwordController.text.isNotEmpty) {
-  //     requestBody['password'] = _passwordController.text;
-  //   }
-
-  //   final NetworkResponse response = await NetworkCaller.postRequest(
-  //     url: Urls.updateProfile,
-  //     body: requestBody,
-  //   );
-
-  //   _inProgress = false;
-  //   setState(() {});
-
-  //   if (response.isSuccess) {
-  //     _pickedImage = null;
-  //     showSnackBarMessage(context, 'Profile updated successful');
-  //     await AuthController.clearUserData();
-  //     Navigator.pushNamedAndRemoveUntil(
-  //       context,
-  //       SplashScreen.routeName,
-  //       (predicate) => false,
-  //     );
-  //   } else {
-  //     showSnackBarMessage(context, response.errorMessage);
-  //   }
-  // }
 
   @override
   void dispose() {

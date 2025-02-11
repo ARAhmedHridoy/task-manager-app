@@ -137,11 +137,7 @@ class _OTPCodeVerifyScreenState extends State<OTPCodeVerifyScreen> {
             ),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  LoginScreen.routeName,
-                  (value) => false,
-                );
+                Get.offAllNamed(LoginScreen.routeName);
               },
           ),
         ],

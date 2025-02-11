@@ -150,11 +150,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  LoginScreen.routeName,
-                  (value) => false,
-                );
+                Get.offAllNamed(LoginScreen.routeName);
               },
           ),
         ],

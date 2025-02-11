@@ -7,10 +7,5 @@ class LogoutController extends GetxController {
     await AuthController.clearUserData();
 
     Get.offNamedUntil(LoginScreen.routeName, (predicate) => false);
-    // Navigator.pushNamedAndRemoveUntil(
-    //   TaskManagerApp.navigatorKey.currentContext!,
-    //   LoginScreen.routeName,
-    //   (_) => false,
-    // );
   }
 }

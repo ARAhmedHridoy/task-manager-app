@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:task_management/ui/controllers/forgot_password/email_verify_controller.dart';
+import 'package:task_management/ui/screens/auth/login.dart';
 import 'package:task_management/ui/screens/forgot_password/otp_code_verify.dart';
 import 'package:task_management/ui/utils/app_colors.dart';
 import 'package:task_management/ui/widgets/background.dart';
@@ -109,8 +110,7 @@ class _EmailVerifyScreenState extends State<EmailVerifyScreen> {
             ),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
-                Navigator.pop(context);
-                //Navigator.pushNamed(context, LoginScreen.routeName);
+                Get.offAllNamed(LoginScreen.routeName);
               },
           ),
         ],
